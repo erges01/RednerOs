@@ -40,17 +40,36 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
 
   createProject: async (name: string) => {
     set({ isLoading: true, error: null });
-    const now = new Date().toISOString();
-    const newProject: Project = {
-      id: uuidv4(),
-      name,
-      createdAt: now,
-      updatedAt: now,
-      assets: [],
-      timeline: [],
-    };
+    
     try {
+      // --- NEW: Tell Rust to create the project in NeonDB ---
+      const res = await fetch("/api/projects", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name }),
+      });
+
+      if (!res.ok) {
+        throw new Error("Failed to create project in the cloud backend");
+      }
+
+      // Rust returns the newly created project with the real DB UUID
+      const dbProject = await res.json();
+
+      // Format it to match your local Project interface
+      const newProject: Project = {
+        id: dbProject.id,
+        name: dbProject.name,
+        createdAt: dbProject.created_at,
+        updatedAt: dbProject.updated_at,
+        assets: [],
+        timeline: [],
+      };
+      // --------------------------------------------------------
+
+      // Save to your local sandbox so your UI stays exactly the same
       await StorageManager.saveProject(newProject);
+      
       set((state) => ({
         currentProject: newProject,
         selectedAsset: null,
