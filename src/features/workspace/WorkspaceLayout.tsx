@@ -1,10 +1,12 @@
 import React, { useEffect, useRef } from "react";
-import { Folder, FolderPlus, HardDrive, Image, Music, Settings, Trash2, Upload, Film } from "lucide-react";
+import { Folder, FolderPlus, HardDrive, Image, Music, Trash2, Upload, Film } from "lucide-react";
 import { useProjectStore } from "../../stores/projectStore";
 import { useEditorStore } from "./store/editorStore";
 import { useEditorQuery } from "./hooks/useEditorQuery";
 import { useTimelineAutosave } from "./hooks/useTimelineAutosave";
+import { useAssetDrag } from "./hooks/useAssetDrag";
 import { TimelineEditor } from "./components/TimelineEditor";
+import { WorkspaceInspector } from "./components/WorkspaceInspector"; // <-- NEW: Imported the Inspector
 
 export const WorkspaceLayout: React.FC = () => {
   const {
@@ -14,13 +16,14 @@ export const WorkspaceLayout: React.FC = () => {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // --- NEW: Editor Engine Hooks ---
+  // --- Editor Engine Hooks ---
   const { isLoading, isError } = useEditorQuery(currentProject?.id || null);
   useTimelineAutosave(currentProject?.id || null);
+  const { onDragStart } = useAssetDrag();
   
   const isSaving = useEditorStore(s => s.isSaving);
   const lastSavedAt = useEditorStore(s => s.lastSavedAt);
-  // --------------------------------
+  // ---------------------------
 
   useEffect(() => {
     refreshProjectsList();
@@ -99,10 +102,10 @@ export const WorkspaceLayout: React.FC = () => {
               currentProject.assets.map((asset) => (
                 <div
                   key={asset.id}
-                  draggable // <-- DRAG AND DROP MAGIC STARTS HERE
-                  onDragStart={(e) => e.dataTransfer.setData("application/json", JSON.stringify(asset))} // <-- AND HERE
+                  draggable 
+                  onDragStart={(e) => onDragStart(e, asset)} 
                   onClick={() => setSelectedAsset(asset)}
-                  className={`flex cursor-pointer items-center gap-2 truncate rounded border p-2 text-xs transition ${
+                  className={`flex cursor-pointer items-center gap-2 truncate rounded border p-2 text-xs transition active:cursor-grabbing ${
                     selectedAsset?.id === asset.id ? "border-gray-500 bg-[#24242b] text-white" : "border-transparent bg-[#18181c] hover:bg-[#202026]"
                   }`}
                 >
@@ -120,7 +123,7 @@ export const WorkspaceLayout: React.FC = () => {
           </div>
         </aside>
 
-        {/* --- HERE IS THE FIX: The Real Canvas Stage --- */}
+        {/* --- The Real Canvas Stage --- */}
         <main className="flex flex-1 flex-col overflow-hidden bg-[#161619]">
           {isLoading ? (
             <div className="flex h-full items-center justify-center text-gray-500 text-sm">Loading timeline from Rust...</div>
@@ -132,25 +135,10 @@ export const WorkspaceLayout: React.FC = () => {
             <TimelineEditor />
           )}
         </main>
-        {/* -------------------------------- */}
 
-        <section className="flex w-72 shrink-0 flex-col border-l border-[#24242b] bg-[#111113]">
-          <div className="flex items-center gap-2 border-b border-[#24242b] p-3 text-[11px] font-bold uppercase tracking-wider text-gray-400">
-            <Settings size={13} /> Inspector
-          </div>
-          <div className="flex-1 space-y-3 overflow-y-auto p-4 text-xs text-gray-400">
-            {selectedAsset ? (
-              <div className="space-y-2 rounded border border-[#24242b] bg-[#18181c] p-3">
-                <div className="text-[10px] font-bold uppercase text-gray-500">Selected Asset</div>
-                <div className="truncate font-semibold text-gray-200">{selectedAsset.name}</div>
-                <div className="text-gray-500">Type: <span className="font-mono text-gray-300">{selectedAsset.type}</span></div>
-                <div className="text-gray-500">Size: <span className="font-mono text-gray-300">{(selectedAsset.size / 1024 / 1024).toFixed(2)} MB</span></div>
-              </div>
-            ) : (
-              <div className="leading-normal text-gray-500">Select an asset to view its details.</div>
-            )}
-          </div>
-        </section>
+        {/* --- NEW: THE DYNAMIC INSPECTOR --- */}
+        <WorkspaceInspector />
+
       </div>
 
       <footer className="flex h-6 shrink-0 items-center justify-between border-t border-[#24242b] bg-[#0a0a0c] px-4 text-[10px] font-mono text-gray-500">

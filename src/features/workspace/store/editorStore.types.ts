@@ -1,4 +1,4 @@
-import type { TimelineDocument } from "../types/editor";
+import type { TimelineDocument, Clip } from "../types/editor";
 
 export type DragMode = "move" | "resize-left" | "resize-right";
 
@@ -25,21 +25,23 @@ export interface EditorStoreState {
   setPlayheadMs: (ms: number) => void;
   selectClip: (clipId: string | null, trackId?: string | null) => void;
   
-  // Drag actions
-  addClip: (trackId: string, asset: any, startMs: number) => void;
+  // --- Clip Creation & Deletion ---
+  addClip: (trackId: string, asset: { id: string; name: string; type: string }, startMs: number) => void;
+  addClipFromAsset: (asset: { id: string; name: string; type: string }, trackId: string, startMs: number) => void;
+  removeClip: (trackId: string, clipId: string) => void;
+
+  // --- Inspector Clip Actions ---
+  updateClipMeta: (trackId: string, clipId: string, updates: Partial<Clip>) => void;
+  duplicateClip: (trackId: string, clipId: string) => void;
+
+  // --- Drag & Resize Actions ---
   startClipDrag: (drag: TimelineDragState) => void;
   stopClipDrag: () => void;
   moveClip: (params: { trackId: string; clipId: string; newStartMs: number }) => void;
   resizeClipLeft: (params: { trackId: string; clipId: string; newStartMs: number; newDurationMs: number }) => void;
   resizeClipRight: (params: { trackId: string; clipId: string; newDurationMs: number }) => void;
-  // ... inside your EditorStoreState interface ...
 
-  // Add this line with your other drag actions:
-  removeClip: (trackId: string, clipId: string) => void;
-
-// ...
-
-  // Save states
+  // --- Save States ---
   markSaving: () => void;
   markSaved: () => void;
   setTimeline: (timeline: TimelineDocument, markDirty?: boolean) => void;
