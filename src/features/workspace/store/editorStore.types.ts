@@ -21,8 +21,12 @@ export interface EditorStoreState {
   lastSavedAt: string | null;
   dragState: TimelineDragState | null;
 
+  // --- NEW: Playback State ---
+  currentTimeMs: number;
+  isPlaying: boolean;
+  playbackRate: number;
+
   hydrateTimeline: (timeline: TimelineDocument) => void;
-  setPlayheadMs: (ms: number) => void;
   selectClip: (clipId: string | null, trackId?: string | null) => void;
   
   // --- Clip Creation & Deletion ---
@@ -40,6 +44,13 @@ export interface EditorStoreState {
   moveClip: (params: { trackId: string; clipId: string; newStartMs: number }) => void;
   resizeClipLeft: (params: { trackId: string; clipId: string; newStartMs: number; newDurationMs: number }) => void;
   resizeClipRight: (params: { trackId: string; clipId: string; newDurationMs: number }) => void;
+
+  // --- NEW: Playback Actions ---
+  play: () => void;
+  pause: () => void;
+  togglePlayback: () => void;
+  seekTo: (timeMs: number) => void;
+  setPlaybackRate: (rate: number) => void;
 
   // --- Save States ---
   markSaving: () => void;

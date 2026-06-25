@@ -6,7 +6,11 @@ import { useEditorQuery } from "./hooks/useEditorQuery";
 import { useTimelineAutosave } from "./hooks/useTimelineAutosave";
 import { useAssetDrag } from "./hooks/useAssetDrag";
 import { TimelineEditor } from "./components/TimelineEditor";
-import { WorkspaceInspector } from "./components/WorkspaceInspector"; // <-- NEW: Imported the Inspector
+import { WorkspaceInspector } from "./components/WorkspaceInspector"; 
+// --- NEW: Phase 2.4 Playback & Stage Imports ---
+import { useTimelinePlayback } from "./hooks/useTimelinePlayback";
+import { PreviewStage } from "./components/PreviewStage";
+import { PreviewControls } from "./components/PreviewControls";
 
 export const WorkspaceLayout: React.FC = () => {
   const {
@@ -20,6 +24,7 @@ export const WorkspaceLayout: React.FC = () => {
   const { isLoading, isError } = useEditorQuery(currentProject?.id || null);
   useTimelineAutosave(currentProject?.id || null);
   const { onDragStart } = useAssetDrag();
+  useTimelinePlayback(); // <-- NEW: Kickstarts the 60FPS animation engine
   
   const isSaving = useEditorStore(s => s.isSaving);
   const lastSavedAt = useEditorStore(s => s.lastSavedAt);
@@ -124,7 +129,7 @@ export const WorkspaceLayout: React.FC = () => {
         </aside>
 
         {/* --- The Real Canvas Stage --- */}
-        <main className="flex flex-1 flex-col overflow-hidden bg-[#161619]">
+        <main className="flex flex-1 flex-col overflow-hidden bg-[#0c0c0e]">
           {isLoading ? (
             <div className="flex h-full items-center justify-center text-gray-500 text-sm">Loading timeline from Rust...</div>
           ) : isError ? (
@@ -132,13 +137,22 @@ export const WorkspaceLayout: React.FC = () => {
           ) : !currentProject ? (
             <div className="flex h-full items-center justify-center text-gray-600 text-sm">Select a project to start editing</div>
           ) : (
-            <TimelineEditor />
+            <>
+              {/* TOP: The Video Player Stage */}
+              <PreviewStage />
+              
+              {/* MIDDLE: Playback Controls */}
+              <PreviewControls />
+              
+              {/* BOTTOM: The Timeline Editor */}
+              <div className="flex h-[45%] min-h-[300px] flex-col overflow-hidden">
+                <TimelineEditor />
+              </div>
+            </>
           )}
         </main>
 
-        {/* --- NEW: THE DYNAMIC INSPECTOR --- */}
         <WorkspaceInspector />
-
       </div>
 
       <footer className="flex h-6 shrink-0 items-center justify-between border-t border-[#24242b] bg-[#0a0a0c] px-4 text-[10px] font-mono text-gray-500">

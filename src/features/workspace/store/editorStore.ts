@@ -4,6 +4,8 @@ import { v4 as uuidv4 } from "uuid";
 import type { EditorStoreState } from "./editorStore.types";
 import { MIN_CLIP_DURATION_MS, updateClipInTimeline } from "../lib/timelineMath";
 import { createClipFromAsset } from "../lib/timelineFactories";
+// --- NEW: Import our timeline duration selector ---
+import { getTimelineDurationMs } from "../lib/playbackSelectors"; 
 
 export const useEditorStore = create<EditorStoreState>()(
   persist(
@@ -16,6 +18,11 @@ export const useEditorStore = create<EditorStoreState>()(
       lastSavedAt: null,
       dragState: null,
 
+      // --- NEW: Playback State ---
+      currentTimeMs: 0,
+      isPlaying: false,
+      playbackRate: 1,
+
       hydrateTimeline: (timeline) => {
         set({
           timeline,
@@ -24,16 +31,43 @@ export const useEditorStore = create<EditorStoreState>()(
           isDirty: false,
           isSaving: false,
           dragState: null,
+          currentTimeMs: 0, // Reset clock on load
+          isPlaying: false,
         });
       },
 
       setTimeline: (timeline, markDirty = true) => set({ timeline, isDirty: markDirty }),
       
-      setPlayheadMs: (ms) => {
+      setPlayheadMs: (ms: number) => {
         const timeline = get().timeline;
         if (!timeline) return;
         set({ timeline: { ...timeline, playhead_ms: Math.max(0, ms) }, isDirty: true });
       },
+
+      // --- NEW: Playback Actions ---
+      play: () => {
+        const { timeline, currentTimeMs } = get();
+        const duration = getTimelineDurationMs(timeline);
+        
+        // If we are at the end of the video, restart from 0
+        if (currentTimeMs >= duration && duration > 0) {
+          set({ currentTimeMs: 0, isPlaying: true });
+        } else {
+          set({ isPlaying: true });
+        }
+      },
+      
+      pause: () => set({ isPlaying: false }),
+      
+      togglePlayback: () => {
+        const state = get();
+        state.isPlaying ? state.pause() : state.play();
+      },
+      
+      seekTo: (timeMs) => set({ currentTimeMs: Math.max(0, timeMs) }),
+      
+      setPlaybackRate: (rate) => set({ playbackRate: rate }),
+      // -----------------------------
 
       addClip: (trackId, asset, startMs) => {
         const { timeline } = get();
