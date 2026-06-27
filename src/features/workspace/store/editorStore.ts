@@ -18,6 +18,9 @@ export const useEditorStore = create<EditorStoreState>()(
       lastSavedAt: null,
       dragState: null,
 
+      // --- THE CLOUD LOCK ---
+      hasHydratedFromCloud: false,
+
       // --- NEW: Playback State ---
       currentTimeMs: 0,
       isPlaying: false,
@@ -33,6 +36,7 @@ export const useEditorStore = create<EditorStoreState>()(
           dragState: null,
           currentTimeMs: 0, // Reset clock on load
           isPlaying: false,
+          hasHydratedFromCloud: true, // <-- UNLOCKS THE AUTOSAVE!
         });
       },
 
@@ -96,7 +100,6 @@ export const useEditorStore = create<EditorStoreState>()(
           timeline: { ...timeline, tracks: updatedTracks },
           isDirty: true,
           lastSavedAt: null, 
-          isSaving: true 
         });
       },
 
@@ -115,7 +118,6 @@ export const useEditorStore = create<EditorStoreState>()(
           timeline: { ...timeline, tracks: updatedTracks },
           isDirty: true,
           lastSavedAt: null,
-          isSaving: true 
         });
       },
 
@@ -133,7 +135,11 @@ export const useEditorStore = create<EditorStoreState>()(
           return track;
         });
 
-        set({ timeline: { ...timeline, tracks: updatedTracks }, isDirty: true, isSaving: true });
+        set({ 
+          timeline: { ...timeline, tracks: updatedTracks }, 
+          isDirty: true, 
+          lastSavedAt: null 
+        });
       },
 
       duplicateClip: (trackId, clipId) => {
@@ -157,7 +163,11 @@ export const useEditorStore = create<EditorStoreState>()(
           return t;
         });
 
-        set({ timeline: { ...timeline, tracks: updatedTracks }, isDirty: true, isSaving: true });
+        set({ 
+          timeline: { ...timeline, tracks: updatedTracks }, 
+          isDirty: true, 
+          lastSavedAt: null 
+        });
       },
 
       selectClip: (clipId, trackId = null) => set({ selectedClipId: clipId, selectedTrackId: trackId }),
@@ -207,7 +217,7 @@ export const useEditorStore = create<EditorStoreState>()(
         set({
           timeline: { ...timeline, tracks: updatedTracks },
           isDirty: true,
-          isSaving: true,
+          lastSavedAt: null,
         });
       },
 

@@ -25,6 +25,7 @@ export interface EditorStoreState {
   currentTimeMs: number;
   isPlaying: boolean;
   playbackRate: number;
+  hasHydratedFromCloud: boolean;
 
   hydrateTimeline: (timeline: TimelineDocument) => void;
   selectClip: (clipId: string | null, trackId?: string | null) => void;
@@ -56,4 +57,12 @@ export interface EditorStoreState {
   markSaving: () => void;
   markSaved: () => void;
   setTimeline: (timeline: TimelineDocument, markDirty?: boolean) => void;
+
+  past: TimelineDocument[];
+  future: TimelineDocument[];
+  undo: () => void;
+  redo: () => void;
+
+
+
 }

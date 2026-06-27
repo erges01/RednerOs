@@ -9,12 +9,16 @@ export function useTimelineAutosave(projectId: string | null) {
   const markSaving = useEditorStore((s) => s.markSaving);
   const markSaved = useEditorStore((s) => s.markSaved);
   const setTimeline = useEditorStore((s) => s.setTimeline);
+  
+  // --- THE CLOUD LOCK ---
+  const hasHydratedFromCloud = useEditorStore((s) => s.hasHydratedFromCloud);
 
   const timelineRef = useRef(timeline);
   useEffect(() => { timelineRef.current = timeline; }, [timeline]);
 
   useEffect(() => {
-    if (!projectId || !timeline || !isDirty || isSaving) return;
+    // THE SHIELD: Do absolutely nothing until Rust has handed over the timeline!
+    if (!projectId || !timeline || !isDirty || isSaving || !hasHydratedFromCloud) return;
 
     const timer = window.setTimeout(async () => {
       try {
@@ -24,9 +28,11 @@ export function useTimelineAutosave(projectId: string | null) {
         markSaved();
       } catch (err) {
         console.error("Autosave failed", err);
+        // CRITICAL FIX: Unlock the saving state if the network request fails!
+        useEditorStore.setState({ isSaving: false }); 
       }
     }, 800);
 
     return () => window.clearTimeout(timer);
-  }, [timeline, isDirty, isSaving, markSaving, markSaved, projectId, setTimeline]);
+  }, [timeline, isDirty, isSaving, markSaving, markSaved, projectId, setTimeline, hasHydratedFromCloud]);
 }

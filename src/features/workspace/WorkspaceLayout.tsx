@@ -11,6 +11,7 @@ import { WorkspaceInspector } from "./components/WorkspaceInspector";
 import { useTimelinePlayback } from "./hooks/useTimelinePlayback";
 import { PreviewStage } from "./components/PreviewStage";
 import { PreviewControls } from "./components/PreviewControls";
+import { useEditorShortcuts } from "./hooks/useEditorShortcuts";
 
 export const WorkspaceLayout: React.FC = () => {
   const {
@@ -26,13 +27,22 @@ export const WorkspaceLayout: React.FC = () => {
   const { onDragStart } = useAssetDrag();
   useTimelinePlayback(); // <-- NEW: Kickstarts the 60FPS animation engine
   
+  // --- START THE BACKGROUND KEYBOARD LISTENER ---
+  useEditorShortcuts(); 
+  
   const isSaving = useEditorStore(s => s.isSaving);
   const lastSavedAt = useEditorStore(s => s.lastSavedAt);
   // ---------------------------
 
+  // --- THE AMNESIA FIX ---
   useEffect(() => {
     refreshProjectsList();
-  }, [refreshProjectsList]);
+
+    const lastId = localStorage.getItem("redner_last_project");
+    if (lastId) {
+      openProject(lastId);
+    }
+  }, [refreshProjectsList, openProject]);
 
   const handleCreatePrompt = () => {
     const name = prompt("Enter Project Name:");
