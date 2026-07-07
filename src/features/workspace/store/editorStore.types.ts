@@ -58,11 +58,13 @@ export interface EditorStoreState {
   markSaved: () => void;
   setTimeline: (timeline: TimelineDocument, markDirty?: boolean) => void;
 
+  // --- HISTORY STACKS ---
   past: TimelineDocument[];
   future: TimelineDocument[];
   undo: () => void;
   redo: () => void;
+  recordAction: (newTimeline: TimelineDocument) => void;
 
-
-
+  // --- THE RAZOR TOOL ---
+  splitClip: () => void;
 }
