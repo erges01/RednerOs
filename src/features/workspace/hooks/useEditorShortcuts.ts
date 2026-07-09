@@ -1,15 +1,7 @@
 import { useEffect } from "react";
-import { useEditorStore } from "../store/editorStore";
+import { executeCommand } from "../store/editorCommands";
 
 export function useEditorShortcuts() {
-  const selectedClipId = useEditorStore((s) => s.selectedClipId);
-  const selectedTrackId = useEditorStore((s) => s.selectedTrackId);
-  const removeClip = useEditorStore((s) => s.removeClip);
-  const togglePlayback = useEditorStore((s) => s.togglePlayback);
-  const undo = useEditorStore((s) => s.undo);
-  const redo = useEditorStore((s) => s.redo);
-  const splitClip = useEditorStore((s) => s.splitClip);
-
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       // THE SHIELD: Do not trigger shortcuts if the user is typing inside an input
@@ -20,28 +12,29 @@ export function useEditorShortcuts() {
       // 1. Play / Pause
       if (e.code === "Space") {
         e.preventDefault(); 
-        togglePlayback();
+        executeCommand({ type: "PLAY_PAUSE" });
       }
 
       // 2. Delete Active Clip
       if (e.code === "Backspace" || e.code === "Delete") {
-        if (selectedClipId && selectedTrackId) {
-          e.preventDefault();
-          removeClip(selectedTrackId, selectedClipId);
-        }
+        e.preventDefault();
+        executeCommand({ type: "DELETE_SELECTED_CLIP" });
       }
 
       // 3. Time Travel (Undo/Redo)
       if (e.ctrlKey && e.code === "KeyZ") {
         e.preventDefault();
-        if (e.shiftKey) redo();
-        else undo();
+        if (e.shiftKey) {
+          executeCommand({ type: "REDO" });
+        } else {
+          executeCommand({ type: "UNDO" });
+        }
       }
 
       // 4. The Razor Tool (Split)
       if (e.code === "KeyS") {
         e.preventDefault();
-        splitClip();
+        executeCommand({ type: "SPLIT_CLIP" });
       }
     };
 
@@ -49,5 +42,5 @@ export function useEditorShortcuts() {
     
     // Cleanup the listener when the workspace closes
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [selectedClipId, selectedTrackId, removeClip, togglePlayback, undo, redo, splitClip]);
+  }, []); // <-- MASSIVE WIN: Empty dependency array. Zero re-renders!
 }
