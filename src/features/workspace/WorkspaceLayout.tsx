@@ -1,7 +1,8 @@
 import React, { useEffect, useRef } from "react";
 import { 
   Folder, FolderPlus, HardDrive, Image, Music, Trash2, 
-  Upload, Film, Search, Menu, PanelRight, PlaySquare
+  Upload, Film, Search, Menu, PanelRight, PlaySquare,
+  FileCode2, Sparkles, Terminal
 } from "lucide-react";
 import { useProjectStore } from "../../stores/projectStore";
 import { useEditorStore } from "./store/editorStore";
@@ -62,7 +63,6 @@ export const WorkspaceLayout: React.FC = () => {
       
       {/* --- VS CODE STYLE TITLE BAR --- */}
       <header className="flex h-10 shrink-0 items-center justify-between border-b border-[#2b2b2b] bg-[#181818] px-3 text-[13px]">
-        {/* Left: Menu & App Name */}
         <div className="flex w-64 items-center gap-4">
           <Menu size={16} className="text-[#858585] hover:text-[#cccccc] cursor-pointer" />
           <div className="hidden items-center gap-3 md:flex text-[#cccccc]">
@@ -72,7 +72,6 @@ export const WorkspaceLayout: React.FC = () => {
           </div>
         </div>
 
-        {/* Center: The Command Palette / Search Bar */}
         <div className="flex h-6 w-96 max-w-full items-center justify-center rounded-md border border-[#3c3c3c] bg-[#1e1e1e] px-3 text-center text-xs text-[#858585] transition-colors hover:border-[#4d4d4d]">
           <Search size={12} className="mr-2" />
           <span className="truncate">
@@ -80,7 +79,6 @@ export const WorkspaceLayout: React.FC = () => {
           </span>
         </div>
 
-        {/* Right: Window Controls / Panel Toggles */}
         <div className="flex w-64 items-center justify-end gap-2">
           <button 
             onClick={toggleAI} 
@@ -96,15 +94,13 @@ export const WorkspaceLayout: React.FC = () => {
 
       <div className="flex min-h-0 flex-1 overflow-hidden">
         
-        {/* --- VS CODE ACTIVITY BAR (FAR LEFT) --- */}
+        {/* --- VS CODE ACTIVITY BAR --- */}
         <div className="flex w-12 shrink-0 flex-col items-center border-r border-[#2b2b2b] bg-[#181818] py-3 gap-6 text-[#858585]">
           <div className="relative group cursor-pointer text-white">
             <Folder size={24} strokeWidth={1.5} />
             <div className="absolute -left-3 top-0 h-full w-1 bg-[#007acc] rounded-r"></div>
           </div>
           <Film size={24} strokeWidth={1.5} className="cursor-pointer hover:text-white transition-colors" />
-          
-          {/* 🛠️ FIX: Removed the unsupported 'title' attribute */}
           <Upload 
             size={24} 
             strokeWidth={1.5} 
@@ -122,7 +118,6 @@ export const WorkspaceLayout: React.FC = () => {
             </button>
           </div>
           
-          {/* Projects Folder */}
           <div className="flex h-1/2 flex-col border-b border-[#2b2b2b]">
             <div className="px-4 py-1 text-[10px] font-bold tracking-wider text-[#858585]">PROJECTS</div>
             <div className="flex-1 space-y-[1px] overflow-y-auto px-2 pb-2">
@@ -153,7 +148,6 @@ export const WorkspaceLayout: React.FC = () => {
             </div>
           </div>
 
-          {/* Assets Folder */}
           <div className="flex flex-1 flex-col">
             <div className="px-4 py-2 text-[10px] font-bold tracking-wider text-[#858585]">ASSET BIN</div>
             <div className="flex-1 space-y-[1px] overflow-y-auto px-2">
@@ -184,19 +178,99 @@ export const WorkspaceLayout: React.FC = () => {
           </div>
         </aside>
 
-        {/* --- MAIN EDITOR CANVAS --- */}
+        {/* --- MAIN EDITOR CANVAS OR WELCOME PAGE --- */}
         <main className="flex flex-1 flex-col overflow-hidden bg-[#1e1e1e]">
           {isLoading ? (
             <div className="flex h-full items-center justify-center text-[#858585] text-sm">Loading workspace...</div>
           ) : isError ? (
             <div className="flex h-full items-center justify-center text-[#f14c4c] text-sm">Failed to attach to runtime.</div>
           ) : !currentProject ? (
-            <div className="flex h-full items-center justify-center text-[#858585] text-sm">
-              <div className="text-center">
-                <PlaySquare size={48} className="mx-auto mb-4 opacity-20" />
-                <p>Select a project to open the editor</p>
+            
+            /* --- 🚀 THE NEW VS CODE WELCOME PAGE --- */
+            <div className="flex h-full flex-col overflow-y-auto bg-[#1e1e1e] px-8 pt-16 md:px-24">
+              <div className="max-w-4xl">
+                <h1 className="text-[32px] font-light text-[#cccccc]">Redner Studio</h1>
+                <p className="mt-1 text-[18px] text-[#858585]">Creative Intelligence IDE</p>
+
+                <div className="mt-12 grid grid-cols-1 gap-16 lg:grid-cols-2">
+                  
+                  {/* Left Column: Start & Recent */}
+                  <div>
+                    <h2 className="mb-4 text-[16px] text-[#cccccc]">Start</h2>
+                    <ul className="space-y-3 text-[13px]">
+                      <li>
+                        <button onClick={handleCreatePrompt} className="flex items-center gap-2 text-[#007acc] transition-colors hover:text-[#569cd6]">
+                          <FolderPlus size={16} /> New Project...
+                        </button>
+                      </li>
+                      <li>
+                        <button className="flex items-center gap-2 text-[#007acc] transition-colors hover:text-[#569cd6]">
+                          <Folder size={16} /> Open Project...
+                        </button>
+                      </li>
+                      <li>
+                        <button onClick={() => fileInputRef.current?.click()} className="flex items-center gap-2 text-[#007acc] transition-colors hover:text-[#569cd6]">
+                          <Upload size={16} /> Import Assets...
+                        </button>
+                      </li>
+                    </ul>
+
+                    <h2 className="mt-10 mb-4 text-[16px] text-[#cccccc]">Recent</h2>
+                    <ul className="space-y-2 text-[13px]">
+                      {projectsList.length === 0 ? (
+                        <li className="text-[#858585]">No recent workspaces</li>
+                      ) : (
+                        projectsList.slice(0, 5).map(project => (
+                          <li key={project.id} className="flex cursor-pointer items-center justify-between group" onClick={() => openProject(project.id)}>
+                            <span className="text-[#007acc] transition-colors hover:text-[#569cd6] truncate max-w-[150px]">
+                              {project.name}
+                            </span>
+                            <span className="text-[#858585] truncate ml-4 text-[12px]">
+                              ~/RednerOS/workspaces/{project.id.slice(0,6)}
+                            </span>
+                          </li>
+                        ))
+                      )}
+                    </ul>
+                  </div>
+
+                  {/* Right Column: Walkthroughs */}
+                  <div>
+                    <h2 className="mb-4 text-[16px] text-[#cccccc]">Walkthroughs</h2>
+                    <div className="space-y-3">
+                      
+                      {/* Highlighted Walkthrough */}
+                      <div className="group cursor-pointer overflow-hidden rounded border border-[#2b2b2b] bg-[#252526] transition-colors hover:bg-[#2a2d2e]">
+                        <div className="h-0.5 w-1/4 bg-[#007acc]"></div>
+                        <div className="flex gap-3 p-4">
+                          <Terminal className="mt-0.5 shrink-0 text-[#007acc]" size={18} />
+                          <div>
+                            <h3 className="text-[13px] font-semibold text-[#cccccc]">Get started with Redner Engine</h3>
+                            <p className="mt-1 text-[12px] text-[#858585]">Customize your workspace, learn the timeline math, and start editing.</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* AI Copilot Badge Walkthrough */}
+                      <div className="flex cursor-pointer items-center gap-3 rounded border border-[#2b2b2b] bg-[#252526] p-4 transition-colors hover:bg-[#2a2d2e] group">
+                        <Sparkles className="shrink-0 text-[#007acc]" size={18} />
+                        <h3 className="text-[13px] font-semibold text-[#cccccc]">Redner AI Co-Pilot</h3>
+                        <span className="ml-auto rounded-full bg-[#007acc] px-2 py-0.5 text-[10px] font-bold text-white">Updated</span>
+                      </div>
+
+                      {/* Architecture Walkthrough */}
+                      <div className="flex cursor-pointer items-center gap-3 rounded border border-[#2b2b2b] bg-[#252526] p-4 transition-colors hover:bg-[#2a2d2e] group">
+                        <FileCode2 className="shrink-0 text-[#007acc]" size={18} />
+                        <h3 className="text-[13px] font-semibold text-[#cccccc]">Learn the Command Bus</h3>
+                      </div>
+
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
+            /* --- END WELCOME PAGE --- */
+
           ) : (
             <>
               <PreviewStage />
@@ -222,8 +296,9 @@ export const WorkspaceLayout: React.FC = () => {
           <span className="cursor-pointer hover:bg-white/20 px-1 rounded transition-colors">Rust Backend Connected</span>
         </div>
         <div className="flex items-center gap-3">
-          <span className="cursor-pointer hover:bg-white/20 px-1 rounded transition-colors">UTF-8</span>
-          <span className="cursor-pointer hover:bg-white/20 px-1 rounded transition-colors">TypeScript React</span>
+          <span className="cursor-pointer hover:bg-white/20 px-1 rounded transition-colors">1080p</span>
+          <span className="cursor-pointer hover:bg-white/20 px-1 rounded transition-colors">60 FPS</span>
+          <span className="cursor-pointer hover:bg-white/20 px-1 rounded transition-colors">H.264</span>
           <span className="flex items-center gap-1 cursor-pointer hover:bg-white/20 px-1 rounded transition-colors">
             {isSaving ? "Syncing..." : lastSavedAt ? "Synced ☁️" : "Idle"}
           </span>

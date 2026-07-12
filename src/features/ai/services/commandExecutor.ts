@@ -63,6 +63,43 @@ export function executeAIResponse(payload: AIResponsePayload) {
         break;
       }
 
+      case "MOVE_CLIP": {
+        // 🛡️ Validator: Ensure the clip exists and time isn't negative
+        const trackWithClip = timeline.tracks.find(t => 
+          t.clips.some(c => c.id === op.clipId)
+        );
+        const safeStart = Math.max(0, op.newStartMs);
+        
+        if (trackWithClip) {
+          state.selectClip(op.clipId, trackWithClip.id);
+          executeCommand({ type: "MOVE_CLIP", payload: { newStartMs: safeStart } });
+        } else {
+          console.warn(`AI Hallucination: Tried to move non-existent clip ${op.clipId}`);
+        }
+        break;
+      }
+
+      case "DUPLICATE_CLIP": {
+        // 🛡️ Validator: Ensure it exists
+        const trackWithClip = timeline.tracks.find(t => 
+          t.clips.some(c => c.id === op.clipId)
+        );
+        if (trackWithClip) {
+          state.selectClip(op.clipId, trackWithClip.id);
+          executeCommand({ type: "DUPLICATE_CLIP" });
+        }
+        break;
+      }
+
+      case "CREATE_MARKER": {
+        const safeTime = Math.max(0, op.timeMs);
+        executeCommand({ 
+          type: "ADD_MARKER", 
+          payload: { timeMs: safeTime, label: op.label } 
+        });
+        break;
+      }
+
       default: {
         console.warn("AI returned an unknown operation type", op);
       }

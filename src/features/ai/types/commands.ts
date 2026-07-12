@@ -1,14 +1,16 @@
 // src/features/ai/types/commands.ts
 
-// 1. The specific operations the AI is legally allowed to request
 export type AIOperation =
+  | { type: "PLAY_PAUSE" }
+  | { type: "SEEK"; timeMs: number }
   | { type: "DELETE_CLIP"; clipId: string }
   | { type: "SPLIT_CLIP"; clipId: string; timeMs: number }
-  | { type: "SEEK"; timeMs: number }
-  | { type: "PLAY_PAUSE" };
+  // 🛠️ NEW: The Expansion Pack Types
+  | { type: "MOVE_CLIP"; clipId: string; newStartMs: number }
+  | { type: "DUPLICATE_CLIP"; clipId: string }
+  | { type: "CREATE_MARKER"; timeMs: number; label: string };
 
-// 2. The exact JSON payload we will instruct the LLM to return
 export interface AIResponsePayload {
-  thoughts: string; // The AI explains why it is making this edit
-  operations: AIOperation[]; // The actual array of commands
+  thoughts: string;
+  operations: AIOperation[];
 }

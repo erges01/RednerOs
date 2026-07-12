@@ -1,14 +1,17 @@
 import { useEffect, useRef } from "react";
 import { useAIStore } from "../store/aiStore";
 import { PromptInput } from "./PromptInput";
+import { CommandReviewPanel } from "./CommandReviewPanel"; // 🛠️ IMPORT ADDED
 
 export function AIChatPanel() {
-  const { isOpen, messages } = useAIStore();
+  // 🛠️ Added pendingOperations to the destructure
+  const { isOpen, messages, isProcessing, pendingOperations } = useAIStore();
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    // 🛠️ Added pendingOperations to dependencies so it scrolls down when the panel appears
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  }, [messages, isProcessing, pendingOperations]);
 
   if (!isOpen) return null;
 
@@ -38,13 +41,30 @@ export function AIChatPanel() {
                 </span>
               </div>
               <div 
-                className="text-[13px] text-[#cccccc] leading-relaxed"
+                // whitespace-pre-wrap ensures any line breaks from the AI are respected
+                className="text-[13px] text-[#cccccc] leading-relaxed whitespace-pre-wrap"
               >
                 {msg.content}
               </div>
             </div>
           ))
         )}
+
+        {/* The Thinking Indicator */}
+        {isProcessing && (
+          <div className="flex flex-col">
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-[11px] font-bold text-[#cccccc]">Redner AI</span>
+            </div>
+            <div className="text-[13px] text-[#858585] animate-pulse">
+              Analyzing timeline...
+            </div>
+          </div>
+        )}
+
+        {/* 🛠️ NEW: The Review Panel Drops Here */}
+        <CommandReviewPanel />
+
         <div ref={bottomRef} />
       </div>
 

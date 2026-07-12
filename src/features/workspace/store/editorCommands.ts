@@ -8,7 +8,12 @@ export type EditorCommand =
   | { type: "REDO" }
   | { type: "SPLIT_CLIP" }
   | { type: "SEEK"; payload: { timeMs: number } }
-  | { type: "SET_PLAYBACK_RATE"; payload: { rate: number } };
+  | { type: "SET_PLAYBACK_RATE"; payload: { rate: number } }
+  // 🛠️ NEW: AI Expansion Pack Commands
+  | { type: "MOVE_CLIP"; payload: { newStartMs: number } }
+  | { type: "DUPLICATE_CLIP" }
+  | { type: "ADD_MARKER"; payload: { timeMs: number; label: string } };
+  
 
 // 2. The Waiter (Dispatcher)
 export function executeCommand(command: EditorCommand) {
@@ -46,6 +51,25 @@ export function executeCommand(command: EditorCommand) {
       store.setPlaybackRate(command.payload.rate);
       break;
       
+    // 🛠️ NEW: Handling the Expansion Pack (Console logging for now so TS doesn't cry)
+    case "MOVE_CLIP":
+      // TODO: Build moveClip in editorStore when you're ready
+      // if (store.selectedClipId) store.moveClip(store.selectedClipId, command.payload.newStartMs);
+      console.log(`[Command Bus] Move clip to ${command.payload.newStartMs}`);
+      break;
+
+    case "DUPLICATE_CLIP":
+      // TODO: Build duplicateClip in editorStore when you're ready
+      // if (store.selectedClipId) store.duplicateClip(store.selectedClipId);
+      console.log(`[Command Bus] Duplicate selected clip`);
+      break;
+
+    case "ADD_MARKER":
+      // TODO: Build addMarker in editorStore when you're ready
+      // store.addMarker(command.payload.timeMs, command.payload.label);
+      console.log(`[Command Bus] Add marker "${command.payload.label}" at ${command.payload.timeMs}`);
+      break;
+
     default:
       console.warn("Command Bus: Unknown command received", command);
   }
