@@ -1,15 +1,14 @@
 import { useEffect, useRef } from "react";
 import { useAIStore } from "../store/aiStore";
 import { PromptInput } from "./PromptInput";
-import { CommandReviewPanel } from "./CommandReviewPanel"; // 🛠️ IMPORT ADDED
+import { CommandReviewPanel } from "./CommandReviewPanel";
+import { TimelineAnalysisPanel } from "./TimelineAnalysisPanel"; // 🛠️ ADDED THE IMPORT
 
 export function AIChatPanel() {
-  // 🛠️ Added pendingOperations to the destructure
   const { isOpen, messages, isProcessing, pendingOperations } = useAIStore();
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // 🛠️ Added pendingOperations to dependencies so it scrolls down when the panel appears
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isProcessing, pendingOperations]);
 
@@ -24,6 +23,10 @@ export function AIChatPanel() {
 
       {/* Message History */}
       <div className="flex-1 overflow-y-auto p-4 space-y-6">
+        
+        {/* 🛠️ NEW: The Pacing Analyzer drops right here at the top */}
+        <TimelineAnalysisPanel />
+
         {messages.length === 0 ? (
           <div className="text-[13px] text-[#858585] flex flex-col gap-4">
             <p>Welcome to Redner Co-Pilot.</p>
@@ -41,7 +44,6 @@ export function AIChatPanel() {
                 </span>
               </div>
               <div 
-                // whitespace-pre-wrap ensures any line breaks from the AI are respected
                 className="text-[13px] text-[#cccccc] leading-relaxed whitespace-pre-wrap"
               >
                 {msg.content}
@@ -62,7 +64,7 @@ export function AIChatPanel() {
           </div>
         )}
 
-        {/* 🛠️ NEW: The Review Panel Drops Here */}
+        {/* The Review Panel Drops Here */}
         <CommandReviewPanel />
 
         <div ref={bottomRef} />
