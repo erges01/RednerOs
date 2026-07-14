@@ -12,7 +12,9 @@ export type EditorCommand =
   // 🛠️ NEW: AI Expansion Pack Commands
   | { type: "MOVE_CLIP"; payload: { newStartMs: number } }
   | { type: "DUPLICATE_CLIP" }
-  | { type: "ADD_MARKER"; payload: { timeMs: number; label: string } };
+  | { type: "ADD_MARKER"; payload: { timeMs: number; label: string; color?: string } }
+  // 🛠️ NEW: Blueprint Compiler Commands
+  | { type: "ADD_CLIP"; payload: { trackId: string; clip: any } };
   
 
 // 2. The Waiter (Dispatcher)
@@ -66,8 +68,14 @@ export function executeCommand(command: EditorCommand) {
 
     case "ADD_MARKER":
       // TODO: Build addMarker in editorStore when you're ready
-      // store.addMarker(command.payload.timeMs, command.payload.label);
+      // store.addMarker(command.payload.timeMs, command.payload.label, command.payload.color);
       console.log(`[Command Bus] Add marker "${command.payload.label}" at ${command.payload.timeMs}`);
+      break;
+
+    case "ADD_CLIP":
+      if (store.addPreconstructedClip) {
+        store.addPreconstructedClip(command.payload.trackId, command.payload.clip);
+      }
       break;
 
     default:

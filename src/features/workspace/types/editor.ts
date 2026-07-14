@@ -1,7 +1,17 @@
 export type UUID = string;
 
 export type TrackType = "video" | "audio" | "text" | "script" | "caption" | "avatar" | "overlay";
-export type ClipType = "video" | "audio" | "image" | "text" | "script_segment" | "caption" | "avatar_segment" | "gap";
+
+// 🛠️ ADDED: "placeholder" for AI scaffold clips
+export type ClipType = "video" | "audio" | "image" | "text" | "script_segment" | "caption" | "avatar_segment" | "gap" | "placeholder"; 
+
+// 🛠️ NEW: Marker interface for the Timeline
+export interface TimelineMarker {
+  id: string;
+  time_ms: number;
+  label: string;
+  color: string;
+}
 
 export interface TimelineDocument {
   id: string;
@@ -11,6 +21,7 @@ export interface TimelineDocument {
   zoom: number;
   playhead_ms: number;
   tracks: Track[];
+  markers?: TimelineMarker[]; // 🛠️ ADDED: Markers array for the AI
 }
 
 export interface Track {
@@ -34,6 +45,7 @@ export interface Clip {
   asset_id?: UUID | null;
   label?: string | null;
   color?: string | null;
+  metadata?: any; // 🛠️ ADDED: Allows the AI to inject script/emotion data directly into the clip
 }
 
 // Responses from Rust

@@ -2,7 +2,8 @@ import { useEffect, useRef } from "react";
 import { useAIStore } from "../store/aiStore";
 import { PromptInput } from "./PromptInput";
 import { CommandReviewPanel } from "./CommandReviewPanel";
-import { TimelineAnalysisPanel } from "./TimelineAnalysisPanel"; // 🛠️ ADDED THE IMPORT
+import { TimelineAnalysisPanel } from "./TimelineAnalysisPanel";
+import { CreativeInterviewWizard } from "../../intelligence/interview/components/CreativeInterviewWizard";
 
 export function AIChatPanel() {
   const { isOpen, messages, isProcessing, pendingOperations } = useAIStore();
@@ -24,7 +25,13 @@ export function AIChatPanel() {
       {/* Message History */}
       <div className="flex-1 overflow-y-auto p-4 space-y-6">
         
-        {/* 🛠️ NEW: The Pacing Analyzer drops right here at the top */}
+        {/* The Interview Wizard drops right here for testing */}
+        <CreativeInterviewWizard 
+          onComplete={(intent) => console.log("INTERVIEW FINISHED! Intent:", intent)} 
+          onCancel={() => console.log("User clicked cancel")} 
+        />
+
+        {/* The Pacing Analyzer drops right here at the top */}
         <TimelineAnalysisPanel />
 
         {messages.length === 0 ? (

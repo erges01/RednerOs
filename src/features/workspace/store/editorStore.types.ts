@@ -65,6 +65,9 @@ export interface EditorStoreState {
   redo: () => void;
   recordAction: (newTimeline: TimelineDocument) => void;
 
+  addPreconstructedClip: (trackId: string, clip: any) => void;
+  addMarker: (timeMs: number, label: string, color?: string) => void;
+
   // --- THE RAZOR TOOL ---
   splitClip: () => void;
 }

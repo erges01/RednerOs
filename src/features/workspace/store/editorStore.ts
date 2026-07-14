@@ -142,6 +142,38 @@ export const useEditorStore = create<EditorStoreState>()(
         get().recordAction({ ...timeline, tracks: updatedTracks });
       },
 
+      // 🛠️ NEW: Used by the AI Blueprint Planner to inject pre-constructed placeholder clips
+      addPreconstructedClip: (trackId, clip) => {
+        const { timeline } = get();
+        if (!timeline) return;
+
+        const updatedTracks = timeline.tracks.map(track => {
+          if (track.id === trackId) {
+            return { ...track, clips: [...track.clips, clip] };
+          }
+          return track;
+        });
+
+        get().recordAction({ ...timeline, tracks: updatedTracks });
+      },
+
+      // 🛠️ NEW: Used by the AI Blueprint Planner to drop chapter markers
+      addMarker: (timeMs, label, color) => {
+        const { timeline } = get();
+        if (!timeline) return;
+
+        const newMarker = {
+          id: uuidv4(),
+          time_ms: timeMs,
+          label,
+          color: color || "#cccccc"
+        };
+
+        // Assuming your timeline has a markers array. If not, this initializes it.
+        const markers = timeline.markers ? [...timeline.markers, newMarker] : [newMarker];
+        get().recordAction({ ...timeline, markers });
+      },
+
       removeClip: (trackId, clipId) => {
         const { timeline } = get();
         if (!timeline) return;
@@ -197,9 +229,6 @@ export const useEditorStore = create<EditorStoreState>()(
         get().recordAction({ ...timeline, tracks: updatedTracks });
       },
 
-      // ==========================================
-      // --- THE RAZOR TOOL (SPLIT CLIP) ---
-      // ==========================================
       splitClip: () => {
         const { timeline, selectedClipId, selectedTrackId, currentTimeMs } = get();
         if (!timeline || !selectedClipId || !selectedTrackId) return;
@@ -210,17 +239,13 @@ export const useEditorStore = create<EditorStoreState>()(
 
         const clipEndMs = clip.start_ms + clip.duration_ms;
         
-        // 1. Is the playhead actually over the clip?
         if (currentTimeMs <= clip.start_ms || currentTimeMs >= clipEndMs) return;
 
         const leftDuration = currentTimeMs - clip.start_ms;
         const rightDuration = clipEndMs - currentTimeMs;
 
-        // 2. Prevent microscopic slivers
         if (leftDuration < MIN_CLIP_DURATION_MS || rightDuration < MIN_CLIP_DURATION_MS) return;
 
-        // 3. Create the right half (SHIFTING THE SOURCE OFFSET SO VIDEO STAYS SYNCED)
-        // THE FIX: Fallback to 0 if source_offset_ms is missing!
         const currentOffset = clip.source_offset_ms || 0;
         
         const rightHalf = {
@@ -228,12 +253,9 @@ export const useEditorStore = create<EditorStoreState>()(
           id: uuidv4(),
           start_ms: currentTimeMs,
           duration_ms: rightDuration,
-          source_offset_ms: currentOffset + leftDuration, // The Magic Math
+          source_offset_ms: currentOffset + leftDuration,
         };
 
-
-        
-        // 4. Update the left half
         const updatedTracks = timeline.tracks.map(t => {
           if (t.id === selectedTrackId) {
             const updatedClips = t.clips.map(c => 
@@ -246,7 +268,6 @@ export const useEditorStore = create<EditorStoreState>()(
 
         get().recordAction({ ...timeline, tracks: updatedTracks });
       },
-      // ==========================================
 
       selectClip: (clipId, trackId = null) => set({ selectedClipId: clipId, selectedTrackId: trackId }),
       startClipDrag: (dragState) => set({ dragState }),
