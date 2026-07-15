@@ -5,6 +5,11 @@ import { CommandReviewPanel } from "./CommandReviewPanel";
 import { TimelineAnalysisPanel } from "./TimelineAnalysisPanel";
 import { CreativeInterviewWizard } from "../../intelligence/interview/components/CreativeInterviewWizard";
 
+// --- The Voice Engine Imports ---
+import { generateAndInjectVoiceover } from "../../creator/services/voiceInjector";
+import { useEditorStore } from "../../workspace/store/editorStore";
+import { injectBrandedTextClip } from "../../creator/services/brandInjector";
+import { injectVisualBroll } from "../../creator/services/visualInjector";
 export function AIChatPanel() {
   const { isOpen, messages, isProcessing, pendingOperations } = useAIStore();
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -18,8 +23,46 @@ export function AIChatPanel() {
   return (
     <div className="flex flex-col w-[320px] shrink-0 h-full bg-[#252526] border-l border-[#2b2b2b]">
       {/* Header matching VS Code Sidebar */}
-      <div className="flex items-center px-4 py-3 text-[11px] font-semibold text-[#cccccc]">
+      <div className="flex items-center px-4 py-3 text-[11px] font-semibold text-[#cccccc] border-b border-[#2b2b2b]">
         <span>CHAT</span>
+      </div>
+
+      {/* --- QUICK ACTIONS BAR --- */}
+      <div className="p-4 border-b border-[#2b2b2b] flex flex-col gap-2">
+        <button
+          onClick={async () => {
+            const currentPlayhead = useEditorStore.getState().timeline?.playhead_ms || 0;
+            console.log("🎙️ Generating AI Voiceover...");
+            await generateAndInjectVoiceover(
+              "Welcome back to another Rust tutorial. Today we are looking at ownership and borrowing.", 
+              currentPlayhead
+            );
+          }}
+          className="w-full flex items-center justify-center gap-2 rounded bg-[#0e639c] px-3 py-2 text-[12px] font-bold text-white transition-colors hover:bg-[#1177bb]"
+        >
+          🎙️ Drop AI Voiceover
+        </button>
+
+        <button
+          onClick={() => {
+            const currentPlayhead = useEditorStore.getState().timeline?.playhead_ms || 0;
+            injectBrandedTextClip("MASTERING RUST", currentPlayhead, 3000);
+          }}
+          className="w-full flex items-center justify-center gap-2 rounded border border-[#007acc] px-3 py-2 text-[12px] font-bold text-[#007acc] transition-colors hover:bg-[#007acc] hover:text-white"
+        >
+          🎨 Drop Branded Title
+        </button>
+
+        <button
+          onClick={async () => {
+            const currentPlayhead = useEditorStore.getState().timeline?.playhead_ms || 0;
+            await injectVisualBroll("Server Rack Architecture", currentPlayhead);
+          }}
+          className="w-full flex items-center justify-center gap-2 rounded border border-[#4e94ce] px-3 py-2 text-[12px] font-bold text-[#4e94ce] transition-colors hover:bg-[#4e94ce] hover:text-white"
+        >
+          🎬 Drop AI B-Roll
+        </button>
+        
       </div>
 
       {/* Message History */}

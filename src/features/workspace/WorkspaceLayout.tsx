@@ -1,9 +1,12 @@
+// src/features/workspace/WorkspaceLayout.tsx
 import React, { useEffect, useRef } from "react";
 import { 
   Folder, FolderPlus, HardDrive, Image, Music, Trash2, 
-  Upload, Film, Search, Menu, PanelRight, PlaySquare,
+  Upload, Film, Menu, PanelRight, PlaySquare,
   FileCode2, Sparkles, Terminal
 } from "lucide-react";
+
+// --- Existing Stores & Hooks ---
 import { useProjectStore } from "../../stores/projectStore";
 import { useEditorStore } from "./store/editorStore";
 import { useEditorQuery } from "./hooks/useEditorQuery";
@@ -15,11 +18,18 @@ import { useTimelinePlayback } from "./hooks/useTimelinePlayback";
 import { PreviewStage } from "./components/PreviewStage";
 import { PreviewControls } from "./components/PreviewControls";
 import { useEditorShortcuts } from "./hooks/useEditorShortcuts";
-
 import { AIChatPanel } from "../ai/components/AIChatPanel";
 import { useAIStore } from "../ai/store/aiStore";
 
+// --- NEW: Identity Imports ---
+import { useCreatorStore } from "../creator/store/creatorStore";
+import { CreatorWizard } from "../creator/components/CreatorWizard";
+import { CreatorSwitcher } from "../creator/components/CreatorSwitcher";
+
 export const WorkspaceLayout: React.FC = () => {
+  // 1. Identity Hook
+  const { creator } = useCreatorStore();
+
   const {
     projectsList, currentProject, selectedAsset, refreshProjectsList,
     createProject, openProject, deleteProject, importAsset, setSelectedAsset,
@@ -58,27 +68,35 @@ export const WorkspaceLayout: React.FC = () => {
     }
   };
 
+  // 2. IDENTITY GATE: If no creator exists, block everything and show the Wizard
+  if (!creator) {
+    return <CreatorWizard onComplete={() => window.location.reload()} />;
+  }
+
   return (
     <div className="flex h-screen w-screen flex-col overflow-hidden bg-[#1e1e1e] font-sans text-[#cccccc]">
       
       {/* --- VS CODE STYLE TITLE BAR --- */}
       <header className="flex h-10 shrink-0 items-center justify-between border-b border-[#2b2b2b] bg-[#181818] px-3 text-[13px]">
+        {/* Left: Menus */}
         <div className="flex w-64 items-center gap-4">
           <Menu size={16} className="text-[#858585] hover:text-[#cccccc] cursor-pointer" />
           <div className="hidden items-center gap-3 md:flex text-[#cccccc]">
             <span className="cursor-pointer rounded px-2 py-1 hover:bg-[#333333]">File</span>
             <span className="cursor-pointer rounded px-2 py-1 hover:bg-[#333333]">Edit</span>
-            <span className="cursor-pointer rounded px-2 py-1 hover:bg-[#333333]">View</span>
           </div>
         </div>
 
-        <div className="flex h-6 w-96 max-w-full items-center justify-center rounded-md border border-[#3c3c3c] bg-[#1e1e1e] px-3 text-center text-xs text-[#858585] transition-colors hover:border-[#4d4d4d]">
-          <Search size={12} className="mr-2" />
-          <span className="truncate">
-            {currentProject ? `Redner - ${currentProject.name}` : "Search or command"}
-          </span>
+        {/* Center: Command Bar / Project Title */}
+        <div className="flex items-center gap-3">
+            <div className="flex items-center rounded-md border border-[#3c3c3c] bg-[#1e1e1e] px-4 py-1 text-center text-xs text-[#cccccc]">
+                {currentProject ? `Redner - ${currentProject.name}` : "No Project Open"}
+            </div>
+            {/* Persona Switcher sits right next to the project */}
+            <CreatorSwitcher />
         </div>
 
+        {/* Right: AI Toggle */}
         <div className="flex w-64 items-center justify-end gap-2">
           <button 
             onClick={toggleAI} 
@@ -178,7 +196,7 @@ export const WorkspaceLayout: React.FC = () => {
           </div>
         </aside>
 
-        {/* --- MAIN EDITOR CANVAS OR WELCOME PAGE --- */}
+        {/* --- MAIN EDITOR CANVAS --- */}
         <main className="flex flex-1 flex-col overflow-hidden bg-[#1e1e1e]">
           {isLoading ? (
             <div className="flex h-full items-center justify-center text-[#858585] text-sm">Loading workspace...</div>
@@ -186,15 +204,12 @@ export const WorkspaceLayout: React.FC = () => {
             <div className="flex h-full items-center justify-center text-[#f14c4c] text-sm">Failed to attach to runtime.</div>
           ) : !currentProject ? (
             
-            /* --- 🚀 THE NEW VS CODE WELCOME PAGE --- */
             <div className="flex h-full flex-col overflow-y-auto bg-[#1e1e1e] px-8 pt-16 md:px-24">
               <div className="max-w-4xl">
                 <h1 className="text-[32px] font-light text-[#cccccc]">Redner Studio</h1>
                 <p className="mt-1 text-[18px] text-[#858585]">Creative Intelligence IDE</p>
 
                 <div className="mt-12 grid grid-cols-1 gap-16 lg:grid-cols-2">
-                  
-                  {/* Left Column: Start & Recent */}
                   <div>
                     <h2 className="mb-4 text-[16px] text-[#cccccc]">Start</h2>
                     <ul className="space-y-3 text-[13px]">
@@ -234,12 +249,9 @@ export const WorkspaceLayout: React.FC = () => {
                     </ul>
                   </div>
 
-                  {/* Right Column: Walkthroughs */}
                   <div>
                     <h2 className="mb-4 text-[16px] text-[#cccccc]">Walkthroughs</h2>
                     <div className="space-y-3">
-                      
-                      {/* Highlighted Walkthrough */}
                       <div className="group cursor-pointer overflow-hidden rounded border border-[#2b2b2b] bg-[#252526] transition-colors hover:bg-[#2a2d2e]">
                         <div className="h-0.5 w-1/4 bg-[#007acc]"></div>
                         <div className="flex gap-3 p-4">
@@ -251,26 +263,21 @@ export const WorkspaceLayout: React.FC = () => {
                         </div>
                       </div>
 
-                      {/* AI Copilot Badge Walkthrough */}
                       <div className="flex cursor-pointer items-center gap-3 rounded border border-[#2b2b2b] bg-[#252526] p-4 transition-colors hover:bg-[#2a2d2e] group">
                         <Sparkles className="shrink-0 text-[#007acc]" size={18} />
                         <h3 className="text-[13px] font-semibold text-[#cccccc]">Redner AI Co-Pilot</h3>
                         <span className="ml-auto rounded-full bg-[#007acc] px-2 py-0.5 text-[10px] font-bold text-white">Updated</span>
                       </div>
 
-                      {/* Architecture Walkthrough */}
                       <div className="flex cursor-pointer items-center gap-3 rounded border border-[#2b2b2b] bg-[#252526] p-4 transition-colors hover:bg-[#2a2d2e] group">
                         <FileCode2 className="shrink-0 text-[#007acc]" size={18} />
                         <h3 className="text-[13px] font-semibold text-[#cccccc]">Learn the Command Bus</h3>
                       </div>
-
                     </div>
                   </div>
                 </div>
               </div>
             </div>
-            /* --- END WELCOME PAGE --- */
-
           ) : (
             <>
               <PreviewStage />
