@@ -1,9 +1,16 @@
 export type UUID = string;
 
-export type TrackType = "video" | "audio" | "text" | "script" | "caption" | "avatar" | "overlay";
+// 🛠️ ADDED: "performance" track type
+export type TrackType = "video" | "audio" | "text" | "script" | "caption" | "avatar" | "overlay" | "performance";
 
-// 🛠️ ADDED: "placeholder" for AI scaffold clips
-export type ClipType = "video" | "audio" | "image" | "text" | "script_segment" | "caption" | "avatar_segment" | "gap" | "placeholder"; 
+// 🛠️ ADDED: "performance_instruction" for director clips
+export type ClipType = "video" | "audio" | "image" | "text" | "script_segment" | "caption" | "avatar_segment" | "gap" | "placeholder" | "performance_instruction"; 
+
+// 🛠️ NEW: Strongly typed metadata for when a clip is a "performance_instruction"
+export interface PerformanceMetadata {
+  directiveType: "energy" | "camera" | "expression" | "gesture";
+  value: string | number;
+}
 
 // 🛠️ NEW: Marker interface for the Timeline
 export interface TimelineMarker {
@@ -45,7 +52,7 @@ export interface Clip {
   asset_id?: UUID | null;
   label?: string | null;
   color?: string | null;
-  metadata?: any; // 🛠️ ADDED: Allows the AI to inject script/emotion data directly into the clip
+  metadata?: any; // 🛠️ ADDED: Allows the AI to inject script/emotion data directly into the clip (e.g., PerformanceMetadata)
 }
 
 // Responses from Rust

@@ -1,5 +1,5 @@
 // src/features/workspace/WorkspaceLayout.tsx
-import React, { useEffect, useRef } from "react";
+import { type FC, useEffect, useRef, useState } from "react";
 import { 
   Folder, FolderPlus, HardDrive, Image, Music, Trash2, 
   Upload, Film, Menu, PanelRight, PlaySquare,
@@ -21,14 +21,18 @@ import { useEditorShortcuts } from "./hooks/useEditorShortcuts";
 import { AIChatPanel } from "../ai/components/AIChatPanel";
 import { useAIStore } from "../ai/store/aiStore";
 
-// --- NEW: Identity Imports ---
+// --- NEW: Identity & Performance Imports ---
 import { useCreatorStore } from "../creator/store/creatorStore";
 import { CreatorWizard } from "../creator/components/CreatorWizard";
 import { CreatorSwitcher } from "../creator/components/CreatorSwitcher";
+import { PerformanceDashboard } from "../performance/components/PerformanceDashboard";
 
-export const WorkspaceLayout: React.FC = () => {
+export const WorkspaceLayout: FC = () => {
   // 1. Identity Hook
   const { creator } = useCreatorStore();
+
+  // 2. View State (Editor vs Performance Studio)
+  const [activeTab, setActiveTab] = useState<"editor" | "performance">("editor");
 
   const {
     projectsList, currentProject, selectedAsset, refreshProjectsList,
@@ -68,13 +72,13 @@ export const WorkspaceLayout: React.FC = () => {
     }
   };
 
-  // 2. IDENTITY GATE: If no creator exists, block everything and show the Wizard
+  // 3. IDENTITY GATE: If no creator exists, block everything and show the Wizard
   if (!creator) {
     return <CreatorWizard onComplete={() => window.location.reload()} />;
   }
 
   return (
-    <div className="flex h-screen w-screen flex-col overflow-hidden bg-[#1e1e1e] font-sans text-[#cccccc]">
+    <div className="relative flex h-screen w-screen flex-col overflow-hidden bg-[#1e1e1e] font-sans text-[#cccccc]">
       
       {/* --- VS CODE STYLE TITLE BAR --- */}
       <header className="flex h-10 shrink-0 items-center justify-between border-b border-[#2b2b2b] bg-[#181818] px-3 text-[13px]">
@@ -87,12 +91,23 @@ export const WorkspaceLayout: React.FC = () => {
           </div>
         </div>
 
-        {/* Center: Command Bar / Project Title */}
-        <div className="flex items-center gap-3">
-            <div className="flex items-center rounded-md border border-[#3c3c3c] bg-[#1e1e1e] px-4 py-1 text-center text-xs text-[#cccccc]">
-                {currentProject ? `Redner - ${currentProject.name}` : "No Project Open"}
+        {/* Center: Command Bar / View Switcher */}
+        <div className="flex items-center gap-4">
+            <div className="flex items-center rounded-md border border-[#3c3c3c] bg-[#1e1e1e] px-1 py-1">
+                <button 
+                  onClick={() => setActiveTab("editor")}
+                  className={`px-3 py-1 text-xs rounded-sm transition-colors ${activeTab === 'editor' ? 'bg-[#37373d] text-white font-medium' : 'text-[#858585] hover:text-[#cccccc]'}`}
+                >
+                  Editor
+                </button>
+                <button 
+                  onClick={() => setActiveTab("performance")}
+                  className={`px-3 py-1 text-xs rounded-sm transition-colors flex items-center gap-2 ${activeTab === 'performance' ? 'bg-[#37373d] text-white font-medium' : 'text-[#858585] hover:text-[#cccccc]'}`}
+                >
+                  🎭 Performance Studio
+                </button>
             </div>
-            {/* Persona Switcher sits right next to the project */}
+            {/* Persona Switcher sits right next to the view tabs */}
             <CreatorSwitcher />
         </div>
 
@@ -196,7 +211,7 @@ export const WorkspaceLayout: React.FC = () => {
           </div>
         </aside>
 
-        {/* --- MAIN EDITOR CANVAS --- */}
+        {/* --- MAIN CANVAS --- */}
         <main className="flex flex-1 flex-col overflow-hidden bg-[#1e1e1e]">
           {isLoading ? (
             <div className="flex h-full items-center justify-center text-[#858585] text-sm">Loading workspace...</div>
@@ -278,7 +293,19 @@ export const WorkspaceLayout: React.FC = () => {
                 </div>
               </div>
             </div>
+
+          ) : activeTab === "performance" ? (
+            
+            /* --- PERFORMANCE STUDIO VIEW --- */
+            <div className="flex h-full items-center justify-center overflow-y-auto bg-[#1e1e1e] p-8">
+              <div className="w-full max-w-4xl shadow-2xl">
+                <PerformanceDashboard />
+              </div>
+            </div>
+
           ) : (
+            
+            /* --- EDITOR VIEW --- */
             <>
               <PreviewStage />
               <PreviewControls />
@@ -286,6 +313,7 @@ export const WorkspaceLayout: React.FC = () => {
                 <TimelineEditor />
               </div>
             </>
+            
           )}
         </main>
 
@@ -294,7 +322,7 @@ export const WorkspaceLayout: React.FC = () => {
       </div>
 
       {/* --- VS CODE STATUS BAR --- */}
-      <footer className="flex h-6 shrink-0 items-center justify-between bg-[#007acc] px-3 text-[11px] font-medium text-white">
+      <footer className="flex h-6 shrink-0 items-center justify-between bg-[#007acc] px-3 text-[11px] font-medium text-white z-10">
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-1 cursor-pointer hover:bg-white/20 px-1 rounded transition-colors">
             <HardDrive size={12} />
@@ -302,6 +330,7 @@ export const WorkspaceLayout: React.FC = () => {
           </div>
           <span className="cursor-pointer hover:bg-white/20 px-1 rounded transition-colors">Rust Backend Connected</span>
         </div>
+
         <div className="flex items-center gap-3">
           <span className="cursor-pointer hover:bg-white/20 px-1 rounded transition-colors">1080p</span>
           <span className="cursor-pointer hover:bg-white/20 px-1 rounded transition-colors">60 FPS</span>
@@ -311,6 +340,7 @@ export const WorkspaceLayout: React.FC = () => {
           </span>
         </div>
       </footer>
+
     </div>
   );
 };

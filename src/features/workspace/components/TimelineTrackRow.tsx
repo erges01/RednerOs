@@ -1,7 +1,7 @@
 import React, { useRef } from "react";
 import type { Track } from "../types/editor";
 import { TimelineClip } from "./TimelineClip";
-import { Film, Music, Type } from "lucide-react";
+import { Film, Music, Type, Clapperboard } from "lucide-react";
 import { useEditorStore } from "../store/editorStore";
 import { getPixelsPerSecond } from "../lib/timelineMath";
 
@@ -18,6 +18,13 @@ export const TimelineTrackRow: React.FC<Props> = ({ track, timelineWidth }) => {
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
+    
+    // 🚨 1. BLOCK DROPS ON PERFORMANCE TRACK
+    if (track.type === "performance") {
+      alert("The Director Track is strictly for AI behavioral clips, not media assets! Use the Performance Studio to generate them.");
+      return;
+    }
+
     const assetData = e.dataTransfer.getData("application/json");
     if (!assetData || !timeline) return;
 
@@ -51,14 +58,24 @@ export const TimelineTrackRow: React.FC<Props> = ({ track, timelineWidth }) => {
   const getIcon = () => {
     if (track.type === "video") return <Film size={12} />;
     if (track.type === "audio") return <Music size={12} />;
+    if (track.type === "performance") return <Clapperboard size={12} />;
     return <Type size={12} />;
   };
 
+  // 🚨 2. STYLE THE PERFORMANCE TRACK SEPARATELY
+  const isPerformance = track.type === "performance";
+
   return (
-    <div className="flex h-20 border-b border-[#24242b]">
+    <div className={`flex h-20 border-b ${isPerformance ? 'border-[#301c40]' : 'border-[#24242b]'}`}>
       {/* Track Header (Left sidebar panel) */}
-      <div className="flex w-48 shrink-0 flex-col justify-center border-r border-[#24242b] bg-[#141416] px-3 z-10">
-        <div className="flex items-center gap-2 text-xs font-semibold text-gray-400">
+      <div className={`flex w-48 shrink-0 flex-col justify-center border-r z-10 px-3 ${
+        isPerformance 
+          ? 'border-[#301c40] bg-[#1a1122]' 
+          : 'border-[#24242b] bg-[#141416]'
+      }`}>
+        <div className={`flex items-center gap-2 text-xs font-semibold ${
+          isPerformance ? 'text-[#b272f2]' : 'text-gray-400'
+        }`}>
           {getIcon()} <span className="truncate">{track.name}</span>
         </div>
       </div>
@@ -66,7 +83,11 @@ export const TimelineTrackRow: React.FC<Props> = ({ track, timelineWidth }) => {
       {/* Track Droppable Area */}
       <div 
         ref={trackRef}
-        className="relative h-full bg-[#111113] hover:bg-[#1a1a1f] transition-colors" 
+        className={`relative h-full transition-colors ${
+          isPerformance 
+            ? 'bg-[#150d1a] hover:bg-[#1a1122]' 
+            : 'bg-[#111113] hover:bg-[#1a1a1f]'
+        }`} 
         style={{ width: timelineWidth }}
         onDragOver={(e) => e.preventDefault()}
         onDrop={handleDrop}

@@ -1,73 +1,143 @@
-# React + TypeScript + Vite
+# Redner Studio (Web)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Redner Studio is a web‑first, AI‑native creative IDE for content creators. Think **"Cursor for Content Creation"**: a professional workspace that treats a timeline like an AST and allows specialized tools (and eventually agents) to manipulate projects, assets, and timeline state in a structured way.
 
-Currently, two official plugins are available:
+This repository contains the **browser‑first MVP**: a dark IDE‑style interface with project management, local persistence, asset ingestion, and a rich timeline/editor foundation.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+---
 
-## React Compiler
+## ✨ What’s Live Today
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### Core (Phase 1)
+- **Full‑screen IDE layout** (VS Code‑inspired)
+- **Projects & assets** stored locally (IndexedDB)
+- **Asset ingestion** via File API (`URL.createObjectURL`)
+- **Project switching + persistence** across refreshes
+- **Timeline editor foundation** (tracks, clips, drag/resize)
+- **Preview stage** (video/image/audio playback)
 
-## Expanding the ESLint configuration
+### Experimental / Future‑Facing (Already Scaffolded)
+> These are in the codebase but not required for Phase 1.
+- **AI chat panel + command review pipeline** (requires backend)
+- **Creative interview + blueprint compiler**
+- **Creator identity profiles (personas, brand/voice presets)**
+- **Performance Studio (director clips + behavior profiles)**
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+---
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## 🧱 Tech Stack
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+- **React + TypeScript + Vite**
+- **TailwindCSS** (dark IDE styling)
+- **Zustand** (global state)
+- **IndexedDB** (local projects + media vault)
+- **Lucide React** (icons)
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+---
+
+## 🗂️ Project Structure (High Level)
+
+```
+src/
+  features/
+    workspace/     # Timeline editor, preview, layout shell
+    ai/            # AI chat + command review (experimental)
+    intelligence/  # Interview → blueprint → timeline compiler
+    creator/       # Persona + brand/voice identity system
+    performance/   # Performance Studio (director track)
+  stores/
+    projectStore.ts
+  utils/
+    storage.ts     # IndexedDB project metadata
+  lib/
+    mediaVault.ts  # IndexedDB media blobs
+  types/
+    index.ts       # Project + Asset models
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+---
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+## 🧠 Local Persistence Architecture
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+### 1) Project Metadata (IndexedDB)
+- **DB:** `RednerStudioDB`
+- **Store:** `projects`
+- Saves project JSON (name, timestamps, assets, timeline metadata)
+
+### 2) Media Vault (IndexedDB)
+- **DB:** `RednerMediaVault`
+- **Store:** `media_blobs`
+- Saves the **raw file blobs** for each asset
+- Asset metadata includes a `vaultKey` to rehydrate blobs later
+
+### 3) Session Memory
+- `localStorage` remembers the last opened project
+- Creator profiles / preferences are persisted via Zustand
+
+---
+
+## 🚀 Getting Started
+
+```bash
+npm install
+npm run dev
 ```
+
+Open the URL from Vite (default: `http://localhost:5173`).
+
+---
+
+## ✅ Usage (Phase 1 Core Flow)
+
+1. **Boot the app**
+2. **Create a project** (toolbar or Explorer panel)
+3. **Import assets** into the Asset Bin
+4. **Select assets** to view details in the Inspector
+5. **Drag assets** to the timeline (if timeline editor is active)
+6. **Preview playback** from the Preview Stage
+
+---
+
+## 🔌 Backend Notes (Optional)
+
+The UI contains optional integrations for AI/chat and timeline autosave:
+
+- `/api/projects` — project creation
+- `/api/projects/:id/editor` — editor hydrate
+- `/api/projects/:id/timeline` — autosave
+- `/api/ai/*` — AI chat / copilot
+
+These endpoints are **not required** for Phase 1, but the UI will call them if enabled.
+
+---
+
+## 📌 Scripts
+
+```bash
+npm run dev      # Start local dev server
+npm run build    # Type-check + build
+npm run lint     # Lint
+npm run preview  # Preview production build
+```
+
+---
+
+## 🧭 Roadmap (High Level)
+
+- **Phase 1:** Local IDE foundation ✅
+- **Phase 2:** Timeline AST + multi‑track sequencing
+- **Phase 3:** AI agents (Script / Voice / Video)
+- **Phase 4:** Collaboration + cloud‑sync
+
+---
+
+## 🖤 Design Goals
+
+- Desktop‑grade UX in the browser
+- Fast local persistence
+- Modular architecture for AI‑native editing
+- Familiar IDE mental model for creators
+
+---
+
+If you want, I can also add docs for API contracts, editor commands, or contributor setup.

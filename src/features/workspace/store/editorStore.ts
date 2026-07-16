@@ -2,7 +2,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { v4 as uuidv4 } from "uuid";
 import type { EditorStoreState } from "./editorStore.types";
-import type { TimelineDocument } from "../types/editor";
+import type { TimelineDocument, Track } from "../types/editor";
 import { 
   MIN_CLIP_DURATION_MS, 
   updateClipInTimeline,
@@ -71,8 +71,25 @@ export const useEditorStore = create<EditorStoreState>()(
       },
 
       hydrateTimeline: (timeline) => {
+        // 🛠️ INJECTION: Ensure the Performance Track always exists at the top
+        const hasPerformanceTrack = timeline.tracks.some(t => t.type === "performance");
+        
+        let hydratedTracks = timeline.tracks;
+        if (!hasPerformanceTrack) {
+          const performanceTrack: Track = {
+            id: `track-perf-${uuidv4().slice(0, 8)}`,
+            name: "🎭 Director Track",
+            type: "performance",
+            order: -1, // Force it to render at the very top
+            clips: []
+          };
+          hydratedTracks = [performanceTrack, ...timeline.tracks];
+        }
+
+        const enrichedTimeline = { ...timeline, tracks: hydratedTracks };
+
         set({
-          timeline,
+          timeline: enrichedTimeline,
           past: [],
           future: [],
           selectedClipId: null,

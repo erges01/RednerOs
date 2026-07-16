@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from "react";
-import { Trash2 } from "lucide-react"; // <-- SWAPPED TO Trash2
+import { Trash2 } from "lucide-react"; 
 import type { Clip, Track } from "../types/editor";
 import { useEditorStore } from "../store/editorStore";
 import { msToPx, getPixelsPerSecond } from "../lib/timelineMath";
@@ -76,13 +76,33 @@ export const TimelineClip: React.FC<Props> = ({ clip, track }) => {
     };
   }, [dragAction, pxPerSecond, track.id, clip.id, moveClip, resizeClipLeft, resizeClipRight]);
 
-  const bgClass = track.type === "video" ? "bg-blue-900/80" : "bg-emerald-900/80";
-  const borderClass = isSelected ? "border-white" : "border-[#3f3f46]";
-  
+  // 🎭 DYNAMIC STYLING LOGIC
+  const getStyleClasses = () => {
+    if (track.type === "performance") return "bg-[#4c1d95]/90 border-[#8b5cf6]";
+    if (track.type === "video") return "bg-blue-900/80 border-[#3f3f46]";
+    return "bg-emerald-900/80 border-[#3f3f46]";
+  };
+
+  const borderClass = isSelected ? "border-white" : "border-transparent";
+
+  // 🛠️ RENDER METADATA OR LABEL
+  const renderContent = () => {
+    if (clip.metadata && typeof clip.metadata === 'object') {
+       const meta = clip.metadata as any;
+       return (
+         <div className="flex flex-col truncate leading-tight">
+            <span className="text-[9px] uppercase opacity-70">{meta.directiveType}</span>
+            <span className="font-bold truncate">{meta.value}</span>
+         </div>
+       );
+    }
+    return <span className="truncate">{clip.label || clip.type}</span>;
+  };
+
   return (
     <div
       onPointerDown={(e) => handlePointerDown(e, 'move')}
-      className={`absolute top-2 bottom-2 rounded-md border ${bgClass} ${borderClass} px-2 py-1 text-xs text-white cursor-grab group`}
+      className={`absolute top-2 bottom-2 rounded-md border ${getStyleClasses()} ${borderClass} px-2 py-1 text-xs text-white cursor-grab group transition-all`}
       style={{ left, width }}
     >
       {/* DELETE BIN BUTTON */}
@@ -95,11 +115,17 @@ export const TimelineClip: React.FC<Props> = ({ clip, track }) => {
         </button>
       )}
 
+      {/* Resize Handles */}
       <div 
         className="absolute left-0 top-0 bottom-0 w-3 cursor-ew-resize hover:bg-white/10 z-20"
         onPointerDown={(e) => handlePointerDown(e, 'resizeLeft')}
       />
-      <div className="truncate font-medium pointer-events-none select-none px-2">{clip.label || clip.type}</div>
+      
+      {/* Content */}
+      <div className="pointer-events-none select-none px-2 h-full flex items-center">
+        {renderContent()}
+      </div>
+
       <div 
         className="absolute right-0 top-0 bottom-0 w-3 cursor-ew-resize hover:bg-white/10 z-20"
         onPointerDown={(e) => handlePointerDown(e, 'resizeRight')}
