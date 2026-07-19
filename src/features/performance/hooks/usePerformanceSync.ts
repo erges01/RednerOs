@@ -5,13 +5,13 @@ import type { Track } from "../../workspace/types/editor";
 
 export const usePerformanceSync = () => {
   const { timeline, currentTimeMs } = useEditorStore();
-  const { profiles, activeProfileId, updateProfile } = usePerformanceStore();
+  const { profiles, activeProfileId, updateProfile } = usePerformanceStore(); // ✅ profiles is now used
   
   // Track the last processed clip ID to prevent infinite state updates
   const lastActiveClipId = useRef<string | null>(null);
 
   useEffect(() => {
-    if (!timeline) return;
+    if (!timeline || !activeProfileId) return;
 
     // 1. Find the Performance Track
     const perfTrack = timeline.tracks.find((t: Track) => t.type === "performance");
@@ -28,26 +28,29 @@ export const usePerformanceSync = () => {
 
       // Update the performance store to match the clip's baked-in settings
       const settings = activeClip.metadata.settings;
-      
-      // Update the active profile with the settings from the clip
-      if (activeProfileId) {
+      const currentProfile = profiles.find(p => p.id === activeProfileId);
+
+      // ✅ Ensure we have the current profile so we can spread the missing SpeakingStyle properties
+      if (currentProfile) {
         updateProfile(activeProfileId, {
           energy: settings.energy,
           defaultExpression: settings.expression,
           eyeContactLevel: settings.eyeContact,
           gestureStyle: settings.gesture,
           preferredCamera: settings.camera,
-          speakingStyle: { pace: settings.pace }
+          speakingStyle: { 
+            ...currentProfile.speakingStyle, // Keeps confidence and pauseLength intact
+            pace: settings.pace 
+          }
         });
         
         console.log("🎬 Sync: Performance state updated to:", settings);
       }
     } 
-    // If we left a clip (playhead is in empty space), reset to a default or keep state? 
-    // We'll keep state for now to avoid flickering, but we reset the ID tracker
+    // If we left a clip (playhead is in empty space), reset the ID tracker
     else if (!activeClip) {
       lastActiveClipId.current = null;
     }
 
-  }, [currentTimeMs, timeline, activeProfileId, updateProfile]);
+  }, [currentTimeMs, timeline, activeProfileId, updateProfile, profiles]);
 };

@@ -1,5 +1,6 @@
 import { usePerformanceStore } from '../store/performanceStore';
 import { useEditorStore } from '../../workspace/store/editorStore'; 
+import { usePerformanceSync } from '../hooks/usePerformanceSync'; // 👈 IMPORTED THE HOOK
 import { v4 as uuidv4 } from 'uuid';
 import type { EnergyLevel, ExpressionPreset, GestureStyle, CameraFraming } from '../types/performance';
 import type { Track } from '../../workspace/types/editor';
@@ -7,6 +8,9 @@ import type { Track } from '../../workspace/types/editor';
 export function PerformanceDashboard() {
   const { profiles, activeProfileId, setActiveProfile, updateProfile } = usePerformanceStore();
   const { timeline, addPreconstructedClip } = useEditorStore();
+  
+  // 👈 CALLED THE HOOK HERE! This makes the dashboard listen to the timeline.
+  usePerformanceSync(); 
   
   const activeProfile = profiles.find(p => p.id === activeProfileId) || profiles[0];
 
@@ -19,7 +23,6 @@ export function PerformanceDashboard() {
   const handleCommitToTimeline = () => {
     if (!timeline) return;
 
-    // Fixed implicit 'any' type by explicitly typing 't' as Track
     const perfTrack = timeline.tracks.find((t: Track) => t.type === 'performance');
     if (!perfTrack) {
         alert("Director Track not found in timeline!");
